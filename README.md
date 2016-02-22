@@ -1,2 +1,2 @@
 # volume-rendering
-out of core volume rendering demo
+out of core volume rendering demo by xiao cheng
