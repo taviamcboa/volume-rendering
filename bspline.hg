@@ -1,0 +1,16 @@
+#ifndef BSPLINE_HGLSL
+#define BSPLINE_HGLSL
+
+// Inline calculation of the bspline convolution weights, without conditional statements
+void bspline_weights(const in vec3 t, inout vec3 weights[4])
+{
+    const vec3 one_frac = 1.0f - t;
+    const vec3 squared = t * t;
+    const vec3 one_sqd = one_frac * one_frac;
+    weights[0] = 1.0f/6.0f * one_sqd * one_frac;
+    weights[1] = 2.0f/3.0f - 0.5f * squared * (2.0f-t);
+    weights[2] = 2.0f/3.0f - 0.5f * one_sqd * (2.0f-one_frac);
+    weights[3] = 1.0f/6.0f * squared * t;
+}
+
+#endif
