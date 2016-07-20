@@ -1,0 +1,156 @@
+#ifndef VLVOLUMERAYCASTER_HPP
+#define	VLVOLUMERAYCASTER_HPP
+
+#define MAX_VRTRAVERSE_SLICE 10
+#define MAX_VRFENCE_SLICE 10
+#define MAX_BASE_SLICE 3
+#define MAX_VRCURVE_SET 5
+#define MAX_VRCURVE_TEXTURESIZE 2048
+
+class VolumeRayCasterAlgorithmImp;
+class vlVolumeRenderingQuality; 
+class vlGLSLTechnique; 
+struct RenderTargetTextureWrapper; 
+class vlSparseVolumeOctreeBase; 
+class VolumeRayCasterAlgorithm
+{
+public:
+    VolumeRayCasterAlgorithm( VolumeOctreeConfig* defOctreeCfg, 
+            VolumeRenderConfig* defVolRendCfg  );
+   
+    ~VolumeRayCasterAlgorithm();
+
+    void setCurrentOctreeVol(vlSparseVolumeOctreeBase*); 
+    void setCurrentOctreeConfig(VolumeOctreeConfig* cfg); 
+    void setCurrentVolumeRenderConfig(VolumeRenderConfig* cfg); 
+    
+    void setReferenceGeometry(Vect3f geomOrigin, Vect3i geomSize, Vect3f geomStep ); 
+    void setActiveVolumeGeometry(Vect3f geomOrigin, Vect3i geomSize, Vect3f geomStep); 
+    void setExtraVolumeGeometry(Vect3f geomOrigin, Vect3i geomSize, Vect3f geomStep); 
+    
+    void setCurrentSeisGain(int gainType, Vect4f linearDivergenceGainParameter, 
+                            float srate, Vect2f depthExtent); 
+    
+    void setCurrentHrzGeometry(int hid, Vect3f geomOrigin, Vect3i geomSize, Vect3f geomStep);
+    
+    void resize(int x, int y); 
+    
+    bool preRenderLoop(); 
+    
+    void preRenderTornadoOpaque();
+    
+    void postRenderTornadoOpaque(); 
+    
+    bool checkEarlyExit(); 
+    
+    void render(timeval t); 
+        
+    void postRenderLoop(bool enablePick); 
+    
+    void outputBackBuffer(); 
+    
+    void updateBoundingBoxRange(Vect3f minNormf, Vect3f maxNormf);
+    
+    void renderSlices(Vect3f, Vect3i, Vect3f, Vect3f, Vect3i, Vect3f) ; 
+    
+    void updateMatrix(timeval cur_t, 
+        Matrixf& mvpMat, 
+        Matrixf& mvMat, 
+        Matrixf& prjMat, 
+        Matrixf& imvpMat, 
+        Matrixf& imvMat, 
+        Matrixf& iprjMat, 
+        double& width, double& height, double& depth); 
+    
+    Matrixf getViewProjectionMatrix() const; 
+    
+    void setBasicSliceVis(int axis, bool flag); 
+    
+    void setAllShowSeismic(bool flag); 
+    void setAllShowAttribute(bool flag); 
+    
+    //ith basic slice
+    void updateBasicSliceNode(int id, int type, Vect4d bgn, Vect4d end, float* texure, Vect2i texSize, bool visibility, bool isShowSeis, bool isShowAttr);
+    void updateTraverseSliceNode(int id, int type, Vect4d bgn, Vect4d end, float* texure, Vect2i texSize, bool visibility, bool isShowSeis, bool isShowAttr);
+    void updateFenceSliceNode(int setid, int id, int type, Vect4d bgn, Vect4d end, float* texure, Vect2i texSize, bool visibility, bool isShowSeis, bool isShowAttr);
+    void updateCurrentFenceSet(int curSetId);
+    
+    //ith curved slice
+    void updateCurvedFenceSliceNode(int id, int type, vector<Vect4d>& pts, vector<float*>& traces, double zOrig, double zStep, int numZSamples, Matrixd l2g, 
+        bool visibility, bool isShowSeis, bool isShowAttr ); 
+    
+    void attachBasicSliceNodeExtraVolChannel(int id, bool); 
+    void attachTraverseSliceNodeExtraVolChannel(int id, bool); 
+    void attachFenceSliceNodeExtraVolChannel(int setId, int id, bool); 
+    void attachCurvedFenceNodeExtraVolChannel(int id, bool); 
+    
+    void deleteCurvedFenceSliceNode(int id); 
+    void deleteBasicSliceNode(int id); 
+    void deleteTraverseSliceNode(int id); 
+    void deleteFenceSliceNode(int setId); 
+    
+    void updateCameraEye(Vect3f eyePos, Vect3f lightPos); 
+    
+    GLuint &getExtraTransferFunctionTexture(); 
+    GLuint &getTransferFunctionTextureArray( ) ; 
+    GLuint &getOpacitySATArray() ; 
+    
+    RenderTargetTextureWrapper& getSinglePassDepthRT(); 
+    
+    void setExtraVolDataTFRange( Vect2f tfRange, Vect2f dataRange ); 
+    void setSeisVolDataTFRange(Vect2f tfRange, Vect2f dataRange); 
+    void setAttrVolDataTFRange(Vect2f tfRange, Vect2f dataRange); 
+    
+    void setEnvelopeDirty(bool flag); 
+    
+    //these interface for tornado to debug and output to screen 
+    GLuint& getClippingHrzTex2D(int hid); 
+    GLuint& getSSAOTex2D(const int reduction = 0); 
+    GLuint& getSSAOBlurredTex2D(const int reduction = 0); 
+    void    setSSAOUseBlurredPass(bool); 
+    bool    isSSAOUseBlurredPass() const; 
+    
+    
+    void invalidateNodeBuffer(); 
+    void invalidateBrickBuffer(); 
+    void resetRenderState(); 
+    
+    void invalidateStreamSliceTexture(); 
+    void invalidateExtraVolTransferFunction(); 
+      
+    void setPerformanceOutput(bool flag); 
+    bool isPerformanceOutput() const; 
+    
+    GLuint& getVoxelPickGL() const;
+    VoxelInfo* getVoxelPickBuffer() const; 
+    
+    void setLightProperty(Vect4f a, Vect4f d, Vect4f s);  
+    
+    vlVolumeRenderingQuality& getVolRendQuality() ; 
+    
+    vlGLSLTechnique* getFullScreenCopyTex2dTechnique(); 
+    vlGLSLTechnique* getDrawWellLogZPassTechnique(); 
+    
+    void initializeGridDimension(); 
+    void initializeGridBuffer(); 
+    
+    Vect3i getGridDim() const; 
+    Vect3i getVoxelsPerCell() const; 
+    
+    void updateGridTexture(GLuint texHandle) ; 
+    
+    void createProxyCube(); 
+    //export shader to binary format, for deployment purpose
+    bool exportBinaryShader(); 
+    
+    void logVolRendProfile(); 
+    
+    void setRGBAMode(bool); 
+    
+private:
+    friend class VolumeRayCasterAlgorithmImp;
+    VolumeRayCasterAlgorithmImp *myImp;    
+};
+
+#endif	
+
