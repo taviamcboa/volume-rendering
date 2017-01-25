@@ -1,3 +1,8 @@
+/*************
+Advanced Volume Rendering
+
+///////////////
+
 class VolumeRayCasterImp 
 {
 public:
